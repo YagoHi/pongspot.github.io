@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pong Spot TTC | Academia de Tenis de Mesa en Surco, Lima</title>
+<meta name="description" content="Academia de Tenis de Mesa en Surco, Lima. Clases para niños y adultos de todos los niveles. Escríbenos por WhatsApp.">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+  :root{
+    --ink:#0d0d0d;
+    --paper:#f5f4f1;
+    --red:#d6001c;
+    --red-dark:#a3001a;
+    --grey:#6b6b6b;
+    --white:#ffffff;
+    --line: rgba(255,255,255,0.12);
+    --line-dark: rgba(0,0,0,0.1);
+    --radius: 2px;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  html{scroll-behavior:smooth;}
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  body{
+    font-family:'Work Sans', sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.6;
+    overflow-x:hidden;
+  }
+
+  h1,h2,h3,h4{
+    font-family:'Anton', sans-serif;
+    font-weight:400;
+    letter-spacing:0.5px;
+    line-height:1.05;
+    text-transform:uppercase;
+  }
+
+  .mono{
+    font-family:'Space Mono', monospace;
+  }
+
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  img{max-width:100%; display:block;}
+  button{font-family:inherit; cursor:pointer; border:none;}
+
+  .container{
+    width:100%;
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 24px;
+  }
+
+  .eyebrow{
+    font-family:'Space Mono', monospace;
+    font-size:0.78rem;
+    letter-spacing:2.5px;
+    text-transform:uppercase;
+    color:var(--red);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:22px;
+    height:2px;
+    background:var(--red);
+    display:inline-block;
+  }
+
+  /* ============ SIGNATURE MOTIF: SPLIT PADDLE DIVIDER ============ */
+  .paddle-divider{
+    height:14px;
+    width:100%;
+    background: linear-gradient(90deg, var(--ink) 0%, var(--ink) 50%, var(--red) 50%, var(--red) 100%);
+    position:relative;
+  }
+  .paddle-divider.flip{
+    background: linear-gradient(90deg, var(--red) 0%, var(--red) 50%, var(--ink) 50%, var(--ink) 100%);
+  }
+
+  /* ============ NAV ============ */
+  header{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:1000;
+    background:rgba(13,13,13,0.92);
+    backdrop-filter: blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    height:76px;
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 24px;
+  }
+  .logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:var(--white);
+  }
+  .logo-mark{
+    width:34px;height:34px;
+    border-radius:50%;
+    background: linear-gradient(135deg, var(--red) 50%, var(--ink) 50%);
+    border:2px solid var(--white);
+    flex-shrink:0;
+  }
+  .logo-text{
+    font-family:'Anton', sans-serif;
+    font-size:1.15rem;
+    letter-spacing:1px;
+  }
+  .logo-text span{color:var(--red);}
+
+  .nav-links{
+    display:flex;
+    gap:34px;
+  }
+  .nav-links a{
+    color:var(--white);
+    font-size:0.85rem;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    font-weight:500;
+    position:relative;
+    padding:6px 0;
+  }
+  .nav-links a::after{
+    content:"";
+    position:absolute;
+    bottom:0; left:0;
+    width:0%; height:2px;
+    background:var(--red);
+    transition:width 0.25s ease;
+  }
+  .nav-links a:hover::after{width:100%;}
+
+  .nav-cta{
+    display:flex;
+    align-items:center;
+    gap:20px;
+  }
+  .btn-nav-wa{
+    background:var(--red);
+    color:var(--white);
+    padding:10px 20px;
+    font-size:0.82rem;
+    font-weight:600;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    border-radius:var(--radius);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    transition:background 0.2s ease, transform 0.2s ease;
+  }
+  .btn-nav-wa:hover{background:var(--red-dark); transform:translateY(-1px);}
+
+  .hamburger{
+    display:none;
+    flex-direction:column;
+    gap:5px;
+    background:none;
+    z-index:1100;
+  }
+  .hamburger span{
+    width:26px; height:2px; background:var(--white); transition:all 0.3s ease;
+  }
+  .hamburger.active span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  .hamburger.active span:nth-child(2){opacity:0;}
+  .hamburger.active span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+  .mobile-menu{
+    position:fixed;
+    top:76px; left:0; right:0; bottom:0;
+    background:var(--ink);
+    z-index:999;
+    display:flex;
+    flex-direction:column;
+    padding:40px 24px;
+    gap:0;
+    transform:translateX(100%);
+    transition:transform 0.35s cubic-bezier(.77,0,.18,1);
+  }
+  .mobile-menu.open{transform:translateX(0);}
+  .mobile-menu a{
+    color:var(--white);
+    font-family:'Anton', sans-serif;
+    font-size:1.6rem;
+    text-transform:uppercase;
+    padding:18px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .mobile-menu .btn-nav-wa{
+    margin-top:30px;
+    justify-content:center;
+    padding:16px;
+    font-size:1rem;
+  }
+
+  /* ============ HERO ============ */
+  .hero{
+    position:relative;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    background:var(--ink);
+    overflow:hidden;
+    padding-top:76px;
+  }
+  .hero-bg{
+    position:absolute;
+    inset:0;
+    background-image:url('https://placehold.co/1600x1000/1a1a1a/2a2a2a?text=%0A');
+    background-size:cover;
+    background-position:center;
+    opacity:0.35;
+  }
+  .hero::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(180deg, rgba(13,13,13,0.5) 0%, rgba(13,13,13,0.92) 85%);
+  }
+  .hero-ball-path{
+    position:absolute;
+    top:0; right:0;
+    width:60%;
+    height:100%;
+    opacity:0.5;
+    z-index:1;
+    pointer-events:none;
+  }
+  .hero-content{
+    position:relative;
+    z-index:2;
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 24px;
+    width:100%;
+  }
+  .hero-inner{max-width:720px;}
+  .hero h1{
+    color:var(--white);
+    font-size:clamp(3rem, 8vw, 6rem);
+    margin-bottom:18px;
+  }
+  .hero h1 .accent{color:var(--red);}
+  .hero-desc{
+    color:rgba(255,255,255,0.78);
+    font-size:1.15rem;
+    max-width:520px;
+    margin-bottom:38px;
+    font-weight:300;
+  }
+  .hero-badges{
+    display:flex;
+    gap:28px;
+    margin-bottom:40px;
+    flex-wrap:wrap;
+  }
+  .hero-badge{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:var(--white);
+  }
+  .hero-badge i{color:var(--red); font-size:1.1rem;}
+  .hero-badge-text{
+    font-family:'Space Mono', monospace;
+    font-size:0.82rem;
+  }
+  .hero-cta{
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    padding:17px 34px;
+    font-size:0.88rem;
+    font-weight:600;
+    letter-spacing:0.8px;
+    text-transform:uppercase;
+    border-radius:var(--radius);
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    transition:all 0.25s ease;
+  }
+  .btn-primary{
+    background:var(--red);
+    color:var(--white);
+  }
+  .btn-primary:hover{background:var(--red-dark); transform:translateY(-2px);}
+  .btn-outline{
+    background:transparent;
+    color:var(--white);
+    border:1.5px solid rgba(255,255,255,0.4);
+  }
+  .btn-outline:hover{border-color:var(--white); background:rgba(255,255,255,0.06);}
+
+  .scroll-cue{
+    position:absolute;
+    bottom:30px; left:50%;
+    transform:translateX(-50%);
+    color:rgba(255,255,255,0.5);
+    font-family:'Space Mono', monospace;
+    font-size:0.7rem;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    z-index:2;
+    animation: bounce 2s infinite;
+  }
+  .scroll-cue::after{
+    content:"";
+    width:1px; height:36px;
+    background:linear-gradient(180deg, var(--red), transparent);
+  }
+  @keyframes bounce{
+    0%,100%{transform:translate(-50%,0);}
+    50%{transform:translate(-50%,8px);}
+  }
+
+  /* ============ SECTION GENERIC ============ */
+  section{
+    padding:110px 0;
+    position:relative;
+  }
+  .section-dark{background:var(--ink); color:var(--white);}
+  .section-dark .eyebrow{color:var(--red);}
+
+  .section-head{
+    max-width:640px;
+    margin-bottom:60px;
+  }
+  .section-head h2{font-size:clamp(2.2rem, 5vw, 3.4rem);}
+  .section-head p{color:var(--grey); font-size:1.05rem; margin-top:18px; font-weight:300;}
+  .section-dark .section-head p{color:rgba(255,255,255,0.65);}
+
+  /* ============ SOBRE NOSOTROS ============ */
+  .about-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:70px;
+    align-items:center;
+  }
+  .about-visual{
+    position:relative;
+    aspect-ratio:4/5;
+    background:var(--ink);
+    overflow:hidden;
+  }
+  .about-visual img{
+    width:100%; height:100%; object-fit:cover;
+    opacity:0.9;
+  }
+  .about-visual::before{
+    content:"";
+    position:absolute;
+    top:-18px; left:-18px;
+    width:120px; height:120px;
+    background:var(--red);
+    z-index:0;
+  }
+  .about-visual-inner{position:relative; z-index:1; width:100%; height:100%;}
+
+  .about-text p{
+    color:var(--grey);
+    font-size:1.05rem;
+    margin-bottom:20px;
+    font-weight:300;
+  }
+  .about-stats{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:24px;
+    margin-top:36px;
+    padding-top:36px;
+    border-top:1px solid var(--line-dark);
+  }
+  .stat-num{
+    font-family:'Anton', sans-serif;
+    font-size:2.6rem;
+    color:var(--red);
+  }
+  .stat-label{
+    font-family:'Space Mono', monospace;
+    font-size:0.78rem;
+    color:var(--grey);
+    text-transform:uppercase;
+    letter-spacing:1px;
+  }
+
+  /* ============ SERVICIOS / HORARIOS ============ */
+  .schedule-grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:28px;
+  }
+  .schedule-card{
+    background:var(--white);
+    border:1px solid var(--line-dark);
+    padding:38px 34px;
+    position:relative;
+    transition:transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .schedule-card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 20px 40px rgba(0,0,0,0.08);
+  }
+  .schedule-card::before{
+    content:"";
+    position:absolute;
+    top:0; left:0;
+    width:100%; height:5px;
+    background:var(--red);
+  }
+  .schedule-card-tag{
+    font-family:'Space Mono', monospace;
+    font-size:0.75rem;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--red);
+    margin-bottom:8px;
+    display:block;
+  }
+  .schedule-card h3{
+    font-size:1.5rem;
+    margin-bottom:22px;
+  }
+  .schedule-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 0;
+    border-bottom:1px dashed var(--line-dark);
+  }
+  .schedule-row:last-of-type{border-bottom:none;}
+  .schedule-days{
+    font-size:0.92rem;
+    color:var(--ink);
+    font-weight:500;
+  }
+  .schedule-time{
+    font-family:'Space Mono', monospace;
+    font-size:0.92rem;
+    color:var(--grey);
+    background:var(--paper);
+    padding:5px 10px;
+  }
+  .schedule-note{
+    margin-top:24px;
+    font-size:0.88rem;
+    color:var(--grey);
+    font-weight:300;
+  }
+  .schedule-cta{
+    margin-top:24px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    color:var(--red);
+    font-weight:600;
+    font-size:0.9rem;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+  }
+  .schedule-cta i{transition:transform 0.2s ease;}
+  .schedule-card:hover .schedule-cta i{transform:translateX(4px);}
+
+  /* ============ GALERIA ============ */
+  .gallery-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:14px;
+  }
+  .gallery-item{
+    aspect-ratio:1/1;
+    overflow:hidden;
+    position:relative;
+    background:#1a1a1a;
+  }
+  .gallery-item img{
+    width:100%; height:100%;
+    object-fit:cover;
+    transition:transform 0.5s ease;
+  }
+  .gallery-item:hover img{transform:scale(1.08);}
+  .gallery-item::after{
+    content: attr(data-label);
+    position:absolute;
+    bottom:14px; left:14px;
+    color:var(--white);
+    font-family:'Space Mono', monospace;
+    font-size:0.7rem;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    opacity:0;
+    transition:opacity 0.3s ease;
+  }
+  .gallery-item:hover::after{opacity:1;}
+  .gallery-item::before{
+    content:"";
+    position:absolute; inset:0;
+    background:linear-gradient(0deg, rgba(0,0,0,0.55) 0%, transparent 45%);
+    opacity:0;
+    transition:opacity 0.3s ease;
+  }
+  .gallery-item:hover::before{opacity:1;}
+  .gallery-note{
+    margin-top:20px;
+    font-size:0.82rem;
+    color:var(--grey);
+    font-family:'Space Mono', monospace;
+  }
+
+  /* ============ RESEÑAS ============ */
+  .reviews-top{
+    display:flex;
+    align-items:center;
+    gap:36px;
+    margin-bottom:50px;
+    flex-wrap:wrap;
+  }
+  .rating-box{
+    text-align:center;
+  }
+  .rating-num{
+    font-family:'Anton', sans-serif;
+    font-size:4rem;
+    color:var(--white);
+    line-height:1;
+  }
+  .rating-stars{color:var(--red); font-size:1.3rem; margin:8px 0;}
+  .rating-count{
+    font-family:'Space Mono', monospace;
+    font-size:0.82rem;
+    color:rgba(255,255,255,0.55);
+  }
+  .reviews-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:22px;
+  }
+  .review-card{
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--line);
+    padding:28px;
+  }
+  .review-stars{color:var(--red); font-size:0.85rem; margin-bottom:14px;}
+  .review-text{
+    font-size:0.95rem;
+    color:rgba(255,255,255,0.85);
+    font-weight:300;
+    margin-bottom:20px;
+    min-height:80px;
+  }
+  .review-author{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .review-avatar{
+    width:34px; height:34px;
+    border-radius:50%;
+    background:var(--red);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Anton', sans-serif;
+    font-size:0.9rem;
+    color:var(--white);
+    flex-shrink:0;
+  }
+  .review-name{
+    font-size:0.85rem;
+    font-weight:600;
+  }
+  .btn-maps-review{
+    margin-top:40px;
+  }
+
+  /* ============ UBICACION ============ */
+  .location-grid{
+    display:grid;
+    grid-template-columns:0.9fr 1.1fr;
+    gap:0;
+    border:1px solid var(--line-dark);
+  }
+  .location-info{
+    background:var(--white);
+    padding:50px 44px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+  .location-info h3{font-size:1.8rem; margin-bottom:24px;}
+  .location-row{
+    display:flex;
+    gap:16px;
+    margin-bottom:22px;
+    align-items:flex-start;
+  }
+  .location-row i{color:var(--red); font-size:1.15rem; margin-top:3px;}
+  .location-row-title{
+    font-family:'Space Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--grey);
+    margin-bottom:4px;
+  }
+  .location-row-value{font-size:1rem; font-weight:500;}
+  .location-map iframe{
+    width:100%; height:100%;
+    min-height:420px;
+    border:none;
+    filter:grayscale(0.3) contrast(1.05);
+  }
+
+  /* ============ CONTACTO ============ */
+  .contact-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:24px;
+  }
+  .contact-card{
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--line);
+    padding:36px 30px;
+    text-align:center;
+    transition:border-color 0.25s ease, transform 0.25s ease;
+  }
+  .contact-card:hover{border-color:var(--red); transform:translateY(-4px);}
+  .contact-icon{
+    width:56px; height:56px;
+    border-radius:50%;
+    background:var(--red);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0 auto 20px;
+    font-size:1.3rem;
+    color:var(--white);
+  }
+  .contact-card h4{font-size:1.05rem; margin-bottom:10px; letter-spacing:0.5px;}
+  .contact-card p{color:rgba(255,255,255,0.6); font-size:0.9rem; font-weight:300;}
+  .contact-card a{color:var(--white); font-weight:500;}
+  .contact-hours-list{
+    text-align:left;
+    font-family:'Space Mono', monospace;
+    font-size:0.82rem;
+    color:rgba(255,255,255,0.75);
+    margin-top:6px;
+  }
+  .contact-hours-list div{
+    display:flex; justify-content:space-between;
+    padding:4px 0;
+  }
+
+  /* ============ REDES ============ */
+  .social-strip{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:60px;
+    flex-wrap:wrap;
+  }
+  .social-link{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    font-size:1.1rem;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    padding:16px 8px;
+    position:relative;
+  }
+  .social-link i{font-size:1.5rem; color:var(--red);}
+  .social-link::after{
+    content:"";
+    position:absolute; bottom:8px; left:0;
+    width:0%; height:2px; background:var(--red);
+    transition:width 0.25s ease;
+  }
+  .social-link:hover::after{width:100%;}
+
+  /* ============ FOOTER ============ */
+  footer{
+    background:var(--ink);
+    color:rgba(255,255,255,0.6);
+    padding:60px 0 30px;
+  }
+  .footer-grid{
+    display:grid;
+    grid-template-columns:1.4fr 1fr 1fr;
+    gap:50px;
+    padding-bottom:40px;
+    border-bottom:1px solid var(--line);
+  }
+  .footer-brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:16px;
+    color:var(--white);
+  }
+  .footer-brand .logo-text{font-size:1.1rem;}
+  .footer-desc{font-size:0.9rem; font-weight:300; max-width:280px;}
+  .footer-col h5{
+    font-family:'Space Mono', monospace;
+    font-size:0.75rem;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--white);
+    margin-bottom:18px;
+  }
+  .footer-col a, .footer-col p{
+    display:block;
+    font-size:0.9rem;
+    margin-bottom:12px;
+    font-weight:300;
+  }
+  .footer-col a:hover{color:var(--red);}
+  .footer-bottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:26px;
+    font-size:0.8rem;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .footer-bottom-socials{display:flex; gap:16px;}
+  .footer-bottom-socials a{
+    width:36px; height:36px;
+    border:1px solid var(--line);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    transition:border-color 0.2s ease, color 0.2s ease;
+  }
+  .footer-bottom-socials a:hover{border-color:var(--red); color:var(--red);}
+
+  /* ============ WHATSAPP FLOTANTE ============ */
+  .wa-float{
+    position:fixed;
+    bottom:26px; right:26px;
+    width:60px; height:60px;
+    background:#25D366;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--white);
+    font-size:1.6rem;
+    box-shadow:0 8px 24px rgba(0,0,0,0.3);
+    z-index:900;
+    transition:transform 0.25s ease;
+    animation: pulse 2.4s infinite;
+  }
+  .wa-float:hover{transform:scale(1.08);}
+  @keyframes pulse{
+    0%{box-shadow:0 8px 24px rgba(0,0,0,0.3), 0 0 0 0 rgba(37,211,102,0.5);}
+    70%{box-shadow:0 8px 24px rgba(0,0,0,0.3), 0 0 0 14px rgba(37,211,102,0);}
+    100%{box-shadow:0 8px 24px rgba(0,0,0,0.3), 0 0 0 0 rgba(37,211,102,0);}
+  }
+
+  /* ============ REVEAL ON SCROLL ============ */
+  .reveal{
+    opacity:0;
+    transform:translateY(28px);
+    transition:opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible{opacity:1; transform:translateY(0);}
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:920px){
+    .nav-links{display:none;}
+    .nav-cta .btn-nav-wa{display:none;}
+    .hamburger{display:flex;}
+
+    .about-grid{grid-template-columns:1fr; gap:40px;}
+    .about-visual{aspect-ratio:16/10;}
+
+    .schedule-grid{grid-template-columns:1fr;}
+    .gallery-grid{grid-template-columns:repeat(2, 1fr);}
+    .reviews-grid{grid-template-columns:1fr;}
+    .contact-grid{grid-template-columns:1fr;}
+
+    .location-grid{grid-template-columns:1fr;}
+    .location-map iframe{min-height:300px;}
+
+    .footer-grid{grid-template-columns:1fr; gap:34px;}
+    .footer-bottom{flex-direction:column; align-items:flex-start;}
+
+    section{padding:80px 0;}
+  }
+
+  @media (max-width:480px){
+    .gallery-grid{grid-template-columns:repeat(2, 1fr);}
+    .hero-badges{gap:18px;}
+    .btn{padding:15px 24px; font-size:0.8rem;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= HEADER / NAV ================= -->
+<header>
+  <nav>
+    <a href="#inicio" class="logo">
+      <span class="logo-mark"></span>
+      <span class="logo-text">PONG SPOT <span>TTC</span></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#nosotros">Nosotros</a></li>
+      <li><a href="#servicios">Clases</a></li>
+      <li><a href="#galeria">Galería</a></li>
+      <li><a href="#resenas">Reseñas</a></li>
+      <li><a href="#ubicacion">Ubicación</a></li>
+      <li><a href="#contacto">Contacto</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="https://wa.me/51933360383?text=Hola%2C%20quiero%20más%20información%20sobre%20las%20clases%20de%20tenis%20de%20mesa" class="btn-nav-wa" target="_blank" rel="noopener">
+        <i class="fa-brands fa-whatsapp"></i> WhatsApp
+      </a>
+      <button class="hamburger" id="hamburger" aria-label="Abrir menú">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#nosotros">Nosotros</a>
+    <a href="#servicios">Clases</a>
+    <a href="#galeria">Galería</a>
+    <a href="#resenas">Reseñas</a>
+    <a href="#ubicacion">Ubicación</a>
+    <a href="#contacto">Contacto</a>
+    <a href="https://wa.me/51933360383" class="btn-nav-wa" target="_blank" rel="noopener">
+      <i class="fa-brands fa-whatsapp"></i> Escríbenos
+    </a>
+  </div>
+</header>
+
+<!-- ================= HERO ================= -->
+<section class="hero" id="inicio">
+  <div class="hero-bg"></div>
+  <svg class="hero-ball-path" viewBox="0 0 600 800" preserveAspectRatio="xMidYMid slice">
+    <path d="M 550 50 Q 400 250 500 400 Q 600 550 420 700" stroke="#d6001c" stroke-width="2" stroke-dasharray="2 14" fill="none" stroke-linecap="round"/>
+    <circle cx="550" cy="50" r="7" fill="#d6001c"/>
+    <circle cx="420" cy="700" r="7" fill="#ffffff" opacity="0.6"/>
+  </svg>
+  <div class="hero-content">
+    <div class="hero-inner">
+      <div class="eyebrow" style="color:var(--red)">Academia de Tenis de Mesa · Surco</div>
+      <h1>PONG SPOT <span class="accent">TTC</span></h1>
+      <p class="hero-desc">Clases de tenis de mesa para todas las edades y niveles, desde principiantes hasta jugadores avanzados. Entrena en un ambiente amplio, profesional y con muy buen nivel.</p>
+      <div class="hero-badges">
+        <div class="hero-badge"><i class="fa-solid fa-star"></i><span class="hero-badge-text">5.0 EN GOOGLE</span></div>
+        <div class="hero-badge"><i class="fa-solid fa-child-reaching"></i><span class="hero-badge-text">NIÑOS Y ADULTOS</span></div>
+        <div class="hero-badge"><i class="fa-solid fa-location-dot"></i><span class="hero-badge-text">SURCO, LIMA</span></div>
+      </div>
+      <div class="hero-cta">
+        <a href="https://wa.me/51933360383?text=Hola%2C%20quiero%20más%20información%20sobre%20las%20clases%20de%20tenis%20de%20mesa" class="btn btn-primary" target="_blank" rel="noopener">
+          <i class="fa-brands fa-whatsapp"></i> Contactar por WhatsApp
+        </a>
+        <a href="#servicios" class="btn btn-outline">Ver horarios</a>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-cue">Desliza</div>
+</section>
+
+<div class="paddle-divider"></div>
+
+<!-- ================= SOBRE NOSOTROS ================= -->
+<section id="nosotros">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-visual reveal">
+        <div class="about-visual-inner">
+          <img src="https://placehold.co/700x900/0d0d0d/d6001c?text=FOTO+DE+LA+ACADEMIA" alt="Instalaciones de Pong Spot TTC">
+        </div>
+      </div>
+      <div class="about-text reveal">
+        <div class="eyebrow">Sobre nosotros</div>
+        <h2 style="font-size:clamp(2rem,4vw,2.8rem); margin-bottom:22px;">Un espacio para aprender y competir</h2>
+        <p>En Pong Spot TTC ofrecemos clases de tenis de mesa para personas de todas las edades y de distintos niveles, desde quienes recién empiezan hasta jugadores con experiencia que buscan perfeccionar su técnica.</p>
+        <p>Nuestro espacio es amplio y pensado para entrenar con calidad, ya sea en clases grupales o personalizadas, guiadas por profesores con buen nivel de enseñanza.</p>
+        <div class="about-stats">
+          <div>
+            <div class="stat-num">5.0</div>
+            <div class="stat-label">Calificación en Google</div>
+          </div>
+          <div>
+            <div class="stat-num">2</div>
+            <div class="stat-label">Niveles: niños y adultos</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="paddle-divider flip"></div>
+
+<!-- ================= SERVICIOS / HORARIOS ================= -->
+<section id="servicios" style="background:var(--paper);">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">Clases</div>
+      <h2>Horarios de entrenamiento</h2>
+      <p>Elige el grupo según tu edad. Las clases se dictan de lunes a sábado, con costo mensual según la frecuencia semanal que elijas.</p>
+    </div>
+    <div class="schedule-grid">
+      <div class="schedule-card reveal">
+        <span class="schedule-card-tag">Adultos</span>
+        <h3>Clases para adultos</h3>
+        <div class="schedule-row">
+          <span class="schedule-days">Lunes a viernes</span>
+          <span class="schedule-time mono">7:00 PM – 8:30 PM</span>
+        </div>
+        <div class="schedule-row">
+          <span class="schedule-days">Lunes a viernes</span>
+          <span class="schedule-time mono">8:30 PM – 10:00 PM</span>
+        </div>
+        <p class="schedule-note">Costo mensual según la cantidad de veces por semana que entrenes.</p>
+        <a href="https://wa.me/51933360383?text=Hola%2C%20quiero%20más%20información%20sobre%20las%20clases%20para%20adultos" class="schedule-cta" target="_blank" rel="noopener">
+          Escríbenos para más información <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+      <div class="schedule-card reveal">
+        <span class="schedule-card-tag">Niños</span>
+        <h3>Clases para niños</h3>
+        <div class="schedule-row">
+          <span class="schedule-days">Martes y jueves</span>
+          <span class="schedule-time mono">5:30 PM – 7:00 PM</span>
+        </div>
+        <div class="schedule-row">
+          <span class="schedule-days">Sábados</span>
+          <span class="schedule-time mono">3:00 PM – 4:30 PM</span>
+        </div>
+        <p class="schedule-note">Costo mensual según la cantidad de veces por semana que entrenes.</p>
+        <a href="https://wa.me/51933360383?text=Hola%2C%20quiero%20más%20información%20sobre%20las%20clases%20para%20niños" class="schedule-cta" target="_blank" rel="noopener">
+          Escríbenos para más información <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GALERIA ================= -->
+<section id="galeria">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">Galería</div>
+      <h2>Nuestro espacio de entrenamiento</h2>
+    </div>
+    <div class="gallery-grid reveal">
+      <div class="gallery-item" data-label="Academia">
+        <img src="https://placehold.co/500x500/111111/d6001c?text=FOTO+1" alt="Foto de la academia Pong Spot TTC">
+      </div>
+      <div class="gallery-item" data-label="Clases">
+        <img src="https://placehold.co/500x500/1a1a1a/ffffff?text=FOTO+2" alt="Clase de tenis de mesa en Pong Spot TTC">
+      </div>
+      <div class="gallery-item" data-label="Alumnos">
+        <img src="https://placehold.co/500x500/d6001c/111111?text=FOTO+3" alt="Alumnos entrenando en Pong Spot TTC">
+      </div>
+      <div class="gallery-item" data-label="Instalaciones">
+        <img src="https://placehold.co/500x500/111111/ffffff?text=FOTO+4" alt="Instalaciones de Pong Spot TTC">
+      </div>
+    </div>
+    <p class="gallery-note">// Reemplaza estas 4 imágenes de ejemplo por fotos reales de la academia. Basta con cambiar la URL dentro del atributo src= de cada &lt;img&gt; en el código.</p>
+  </div>
+</section>
+
+<div class="paddle-divider"></div>
+
+<!-- ================= RESEÑAS ================= -->
+<section id="resenas" class="section-dark">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">Reseñas</div>
+      <h2>Lo que dicen en Google</h2>
+    </div>
+    <div class="reviews-top reveal">
+      <div class="rating-box">
+        <div class="rating-num">5.0</div>
+        <div class="rating-stars">★★★★★</div>
+        <div class="rating-count">6 reseñas en Google</div>
+      </div>
+    </div>
+    <div class="reviews-grid reveal">
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Excelente academia!! He aprendido muchísimo desde la primera clase, es amplio y tiene muy buen nivel, recomendado."</p>
+        <div class="review-author">
+          <div class="review-avatar">V</div>
+          <div class="review-name">Valeria L. — Local Guide</div>
+        </div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Excelente academia para entrenar principiantes y avanzados."</p>
+        <div class="review-author">
+          <div class="review-avatar">B</div>
+          <div class="review-name">BP & MN Consultores Legales</div>
+        </div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Excelente lugar para aprender, clases personalizadas y grupales con buenos profesores."</p>
+        <div class="review-author">
+          <div class="review-avatar">G</div>
+          <div class="review-name">Gianna E.</div>
+        </div>
+      </div>
+    </div>
+    <a href="https://www.google.com/maps/place/Pong+Spot+-+Academia+de+Tenis+de+Mesa/@-12.1205313,-76.996256,17z/data=!4m16!1m9!3m8!1s0x9105c77102424499:0x524c943b215d262!2sPong+Spot+-+Academia+de+Tenis+de+Mesa!8m2!3d-12.1205366!4d-76.9936811!9m1!1b1!16s%2Fg%2F11xkh2y00f!3m5!1s0x9105c77102424499:0x524c943b215d262!8m2!3d-12.1205366!4d-76.9936811!16s%2Fg%2F11xkh2y00f?entry=ttu"
+        class="btn btn-outline btn-maps-review" target="_blank" rel="noopener">
+      <i class="fa-brands fa-google"></i> Ver todas las reseñas en Google Maps
+    </a>
+  </div>
+</section>
+
+<!-- ================= UBICACION ================= -->
+<section id="ubicacion" style="background:var(--paper);">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">Ubicación</div>
+      <h2>Encuéntranos en Surco</h2>
+    </div>
+    <div class="location-grid reveal">
+      <div class="location-info">
+        <h3>Pong Spot TTC</h3>
+        <div class="location-row">
+          <i class="fa-solid fa-location-dot"></i>
+          <div>
+            <div class="location-row-title">Dirección</div>
+            <div class="location-row-value">Jr. Villa Carrillo 130, Surco, Lima</div>
+          </div>
+        </div>
+        <div class="location-row">
+          <i class="fa-solid fa-clock"></i>
+          <div>
+            <div class="location-row-title">Horario de atención</div>
+            <div class="location-row-value">Lunes a viernes: 5:30 PM – 10:00 PM</div>
+            <div class="location-row-value">Sábados: 3:00 PM – 4:30 PM</div>
+          </div>
+        </div>
+        <a href="https://www.google.com/maps/place/Pong+Spot+-+Academia+de+Tenis+de+Mesa/@-12.1205313,-76.996256,17z/data=!4m16!1m9!3m8!1s0x9105c77102424499:0x524c943b215d262!2sPong+Spot+-+Academia+de+Tenis+de+Mesa!8m2!3d-12.1205366!4d-76.9936811!9m1!1b1!16s%2Fg%2F11xkh2y00f!3m5!1s0x9105c77102424499:0x524c943b215d262!8m2!3d-12.1205366!4d-76.9936811!16s%2Fg%2F11xkh2y00f?entry=ttu"
+          class="btn btn-primary" style="margin-top:10px; align-self:flex-start;" target="_blank" rel="noopener">
+          <i class="fa-solid fa-diamond-turn-right"></i> Cómo llegar
+        </a>
+      </div>
+      <div class="location-map">
+        <iframe
+          src="https://www.google.com/maps?q=-12.1205366,-76.9936811&z=17&output=embed"
+          allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+          title="Ubicación de Pong Spot TTC en el mapa">
+        </iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="paddle-divider flip"></div>
+
+<!-- ================= CONTACTO ================= -->
+<section id="contacto" class="section-dark">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">Contacto</div>
+      <h2>Escríbenos y resolvemos tus dudas</h2>
+    </div>
+    <div class="contact-grid reveal">
+      <div class="contact-card">
+        <div class="contact-icon"><i class="fa-brands fa-whatsapp"></i></div>
+        <h4>WhatsApp</h4>
+        <p><a href="https://wa.me/51933360383" target="_blank" rel="noopener">+51 933 360 383</a></p>
+      </div>
+      <div class="contact-card">
+        <div class="contact-icon"><i class="fa-solid fa-phone"></i></div>
+        <h4>Teléfono</h4>
+        <p><a href="tel:+51933360383">933 360 383</a></p>
+      </div>
+      <div class="contact-card">
+        <div class="contact-icon"><i class="fa-solid fa-clock"></i></div>
+        <h4>Horario de atención</h4>
+        <div class="contact-hours-list">
+          <div><span>Lun – Vie</span><span>5:30pm – 10:00pm</span></div>
+          <div><span>Sábado</span><span>3:00pm – 4:30pm</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= REDES SOCIALES ================= -->
+<section style="padding:70px 0; background:var(--paper);">
+  <div class="container">
+    <div class="social-strip reveal">
+      <a href="https://www.instagram.com/pongspot.ttc/" class="social-link" target="_blank" rel="noopener">
+        <i class="fa-brands fa-instagram"></i> Instagram
+      </a>
+      <a href="https://www.facebook.com/profile.php?id=61574155215902" class="social-link" target="_blank" rel="noopener">
+        <i class="fa-brands fa-facebook"></i> Facebook
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <span class="logo-mark"></span>
+          <span class="logo-text">PONG SPOT <span>TTC</span></span>
+        </div>
+        <p class="footer-desc">Academia de tenis de mesa en Surco, Lima. Clases para niños y adultos de todos los niveles.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Navegación</h5>
+        <a href="#nosotros">Nosotros</a>
+        <a href="#servicios">Clases</a>
+        <a href="#galeria">Galería</a>
+        <a href="#ubicacion">Ubicación</a>
+      </div>
+      <div class="footer-col">
+        <h5>Contacto</h5>
+        <p>Jr. Villa Carrillo 130, Surco, Lima</p>
+        <a href="tel:+51933360383">933 360 383</a>
+        <a href="https://wa.me/51933360383" target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> Pong Spot TTC. Todos los derechos reservados.</span>
+      <div class="footer-bottom-socials">
+        <a href="https://www.instagram.com/pongspot.ttc/" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+        <a href="https://www.facebook.com/profile.php?id=61574155215902" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- WhatsApp flotante -->
+<a href="https://wa.me/51933360383?text=Hola%2C%20quiero%20más%20información%20sobre%20las%20clases%20de%20tenis%20de%20mesa"
+   class="wa-float" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+  <i class="fa-brands fa-whatsapp"></i>
+</a>
+
+<script>
+  // Año dinámico en footer
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // Menú hamburguesa
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('active');
+    mobileMenu.classList.toggle('open');
+  });
+  document.querySelectorAll('.mobile-menu a').forEach(link => {
+    link.addEventListener('click', () => {
+      hamburger.classList.remove('active');
+      mobileMenu.classList.remove('open');
+    });
+  });
+
+  // Reveal on scroll
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  revealEls.forEach(el => observer.observe(el));
+
+  // Header shadow on scroll
+  const header = document.querySelector('header');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 20) {
+      header.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3)';
+    } else {
+      header.style.boxShadow = 'none';
+    }
+  });
+</script>
+
+</body>
+</html>
